@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class TaskListController extends AbstractController
 {
 
-    public function __construct(private EntityManagerInterface $entityManager)
+    public function __construct(private readonly EntityManagerInterface $entityManager)
     {}
 
     #[Route(path: "/task-lists", name: 'get_task_lists', methods: ["GET"])]
@@ -30,9 +30,11 @@ class TaskListController extends AbstractController
     }
 
     #[Route(path: "/task-lists/{id}", name: 'get_task_list', methods: ["GET"])]
-    public function show(int $id, TaskListRepository $taskListRepository, SerializerInterface $serializer): JsonResponse
+    public function show(SerializerInterface $serializer, TaskList $taskList = null): JsonResponse
     {
-        $taskList = $taskListRepository->find($id);
+        if (!$taskList) {
+            return $this->json(['error' => 'Task List not found'], Response::HTTP_NOT_FOUND);
+        }
         $data = json_decode($serializer->serialize($taskList, 'json'), true);
 
         return $this->json($data);
@@ -47,9 +49,8 @@ class TaskListController extends AbstractController
     }
 
     #[Route(path: "/task-lists/{id}", name: 'update_task_list', methods: ["PUT"])]
-    public function update(int $id, Request $request, TaskListRepository $taskListRepository, ValidatorInterface $validator): JsonResponse
+    public function update(Request $request, ValidatorInterface $validator, TaskList $taskList = null): JsonResponse
     {
-        $taskList = $taskListRepository->find($id);
         if (!$taskList) {
             return $this->json(['error' => 'Task List not found'], Response::HTTP_NOT_FOUND);
         }
@@ -58,9 +59,11 @@ class TaskListController extends AbstractController
     }
 
     #[Route(path: "/task-lists/{id}", name: 'delete_task_list', methods: ["DELETE"])]
-    public function delete(int $id, TaskListRepository $taskListRepository): JsonResponse
+    public function delete(TaskList $taskList = null): JsonResponse
     {
-        $taskList = $taskListRepository->find($id);
+        if (!$taskList) {
+            return $this->json(['error' => 'Task List not found'], Response::HTTP_NOT_FOUND);
+        }
         $this->entityManager->remove($taskList);
         $this->entityManager->flush();
 
