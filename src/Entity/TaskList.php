@@ -26,6 +26,13 @@ class TaskList
     #[ORM\OneToMany(targetEntity: Task::class, mappedBy: "taskList", cascade: ['persist', 'remove'])]
     private Collection $tasks;
 
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "taskLists")]
+    #[ORM\JoinColumn(name: "user_id", referencedColumnName: "id", nullable: false)]
+    private User $user;
+
+    #[ORM\Column]
+    private ?int $user_id = null;
+
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
@@ -73,5 +80,31 @@ class TaskList
         }
 
         return $this;
+    }
+
+    #[Ignore]
+    public function getUserId(): ?int
+    {
+        return $this->user_id;
+    }
+
+    public function setUserId(int $user_id): static
+    {
+        $this->user_id = $user_id;
+
+        return $this;
+    }
+
+    #[Ignore]
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): User
+    {
+        $this->user = $user;
+
+        return $this->user;
     }
 }
