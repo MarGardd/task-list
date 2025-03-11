@@ -33,6 +33,20 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
+    public function findAllTasksWithTaskListsByUser(User $user): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.taskLists', 'tl')
+            ->leftJoin('tl.tasks', 't')
+            ->addSelect('tl', 't')
+            ->where('u.id = :userId')
+            ->setParameter('userId', $user->getId())
+            ->orderBy('tl.id', 'ASC')
+            ->addOrderBy('t.id', 'ASC')
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return User[] Returns an array of User objects
     //     */

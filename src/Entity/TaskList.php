@@ -56,7 +56,7 @@ class TaskList
     }
 
     #[Ignore]
-    public function getTasks(): ArrayCollection|Collection
+    public function getTasks(): Collection
     {
         return $this->tasks;
     }

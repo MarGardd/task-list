@@ -23,6 +23,7 @@ final class Version20250306090229 extends AbstractMigration
         $this->addSql('ALTER TABLE task_list ADD user_id INT NOT NULL');
         $this->addSql('ALTER TABLE task_list ADD CONSTRAINT FK_377B6C63A76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('CREATE INDEX IDX_377B6C63A76ED395 ON task_list (user_id)');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_EMAIL ON "user" (email)');
     }
 
     public function down(Schema $schema): void
@@ -31,5 +32,6 @@ final class Version20250306090229 extends AbstractMigration
         $this->addSql('ALTER TABLE task_list DROP CONSTRAINT FK_377B6C63A76ED395');
         $this->addSql('DROP INDEX IDX_377B6C63A76ED395');
         $this->addSql('ALTER TABLE task_list DROP user_id');
+        $this->addSql('DROP INDEX UNIQ_EMAIL');
     }
 }

@@ -19,6 +19,21 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+    App\Constraint\Entity\EntityExistenceValidator:
+        arguments:
+            $entityManager: '@doctrine.orm.entity_manager'
+        tags: [ validator.constraint_validator ]
+#    App\Service\TaskListService:
+#        arguments:
+#            $entityManager: '@doctrine.orm.entity_manager'
+#            $validator: '@validator'
+#            $taskListRepository: '@App\Repository\TaskListRepository'
+#            $userRepository: '@App\Repository\UserRepository'
+#    App\Service\TaskService:
+#        arguments:
+#            $entityManager: '@doctrine.orm.entity_manager'
+#            $validator: '@validator'
+#            $taskRepository: '@App\Repository\TaskRepository'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
