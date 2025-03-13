@@ -12,9 +12,10 @@ class EntityExistence extends Constraint
         public string $message = "Entity with ID '{{ value }}' does not exist.",
         public string $field = 'id',
         public bool $checkExist = true,
+        ?array $groups = null,
     )
     {
-        parent::__construct(['value' => $entityClass]);
+        parent::__construct(['value' => $entityClass], $groups);
     }
 
     public function getDefaultOption(): string

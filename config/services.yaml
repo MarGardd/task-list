@@ -23,17 +23,14 @@ services:
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
         tags: [ validator.constraint_validator ]
-#    App\Service\TaskListService:
-#        arguments:
-#            $entityManager: '@doctrine.orm.entity_manager'
-#            $validator: '@validator'
-#            $taskListRepository: '@App\Repository\TaskListRepository'
-#            $userRepository: '@App\Repository\UserRepository'
-#    App\Service\TaskService:
-#        arguments:
-#            $entityManager: '@doctrine.orm.entity_manager'
-#            $validator: '@validator'
-#            $taskRepository: '@App\Repository\TaskRepository'
+    App\Resolver\EntityValueResolver:
+        arguments:
+            $resolver: '@doctrine.orm.entity_value_resolver'
+            $defaults: '@App\Attribute\MapEntity'
+    App\Security\TaskVoter:
+        tags: [ security.voter ]
+    App\Security\TaskListVoter:
+        tags: [ security.voter ]
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

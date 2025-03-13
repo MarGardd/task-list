@@ -2,16 +2,20 @@
 
 namespace App\Controller;
 
+use App\Attribute\MapEntity;
 use App\Dto\TaskListDto;
 use App\Entity\TaskList;
-use App\Entity\User;;
+use App\Entity\User;
+
+use App\Resolver\EntityValueResolver;
 use App\Service\TaskListService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route(path: "/api", name: "api_")]
 class TaskListController extends AbstractController
@@ -29,49 +33,48 @@ class TaskListController extends AbstractController
     }
 
     #[Route(path: "/task-lists/{id}", name: 'get_task_list', methods: ["GET"])]
-    public function show(#[CurrentUser] ?User $currentUser, int $id): JsonResponse
+    #[IsGranted('OWN', 'taskList', message: 'Access Denied')]
+    public function show(
+        #[MapEntity(resolver: EntityValueResolver::class, message: 'Task list not found')] TaskList $taskList
+    ): JsonResponse
     {
-        $taskList = $this->taskListService->getTaskListById($id, $currentUser);
-        if (!$taskList) {
-            return $this->json(['error' => 'Task List not found'], Response::HTTP_NOT_FOUND);
-        }
-
         return $this->json(new TaskListDto($taskList));
     }
 
     #[Route(path: "/task-lists", name: 'create_task_list', methods: ["POST"])]
-    public function create(Request $request): JsonResponse
+    public function create(
+        #[MapRequestPayload(
+            validationGroups: ['create']
+        )] TaskListDto $taskList,
+    ): JsonResponse
     {
-        $result = $this->taskListService->createTaskList($request->getPayload()->all());
-        if (isset($result['errors'])) {
-            return $this->json(['errors' => $result['errors']], Response::HTTP_BAD_REQUEST);
-        }
+        $taskListId = $this->taskListService->createTaskList($taskList);
 
-        return $this->json($result, Response::HTTP_CREATED);
+        return $this->json(['message' => 'Task List created successfully', 'id' => $taskListId], Response::HTTP_CREATED);
     }
 
-    #[Route(path: "/task-lists/{id}", name: 'update_task_list', methods: ["PUT"])]
-    public function update(Request $request, TaskList $taskList = null): JsonResponse
+    #[Route(path: "/task-lists/{id}", name: 'update_task_list', methods: ["PUT"], format: 'json')]
+    #[IsGranted('OWN', 'taskList', message: 'Access Denied')]
+    public function update(
+        #[MapRequestPayload(
+            validationGroups: ['update']
+        )] TaskListDto $taskListDto,
+        #[MapEntity(resolver: EntityValueResolver::class, message: 'Task list not found')] TaskList $taskList
+    ): JsonResponse
     {
-        if (!$taskList) {
-            return $this->json(['error' => 'Task list not found'], Response::HTTP_NOT_FOUND);
-        }
-        $result = $this->taskListService->updateTaskList($taskList, $request->query->all());
-        if (isset($result['errors'])) {
-            return $this->json(['errors' => $result['errors']], Response::HTTP_BAD_REQUEST);
-        }
+        $this->taskListService->updateTaskList($taskList, $taskListDto);
 
-        return $this->json($result);
+        return $this->json(['message' => 'Task List updated successfully']);
     }
 
     #[Route(path: "/task-lists/{id}", name: 'delete_task_list', methods: ["DELETE"])]
-    public function delete(TaskList $taskList = null): JsonResponse
+    #[IsGranted('OWN', 'taskList', message: 'Access Denied')]
+    public function delete(
+        #[MapEntity(resolver: EntityValueResolver::class, message: 'Task list not found')] TaskList $taskList
+    ): JsonResponse
     {
-        if (!$taskList) {
-            return $this->json(['error' => 'Task list not found'], Response::HTTP_NOT_FOUND);
-        }
-        $result = $this->taskListService->deleteTaskList($taskList);
+        $this->taskListService->deleteTaskList($taskList);
 
-        return $this->json($result);
+        return $this->json(['message' => 'Task List deleted successfully']);
     }
 }
