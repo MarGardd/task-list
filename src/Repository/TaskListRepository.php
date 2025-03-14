@@ -5,29 +5,45 @@ namespace App\Repository;
 use App\Entity\TaskList;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
+use Knp\Component\Pager\Pagination\PaginationInterface;
+use Knp\Component\Pager\PaginatorInterface;
 
 /**
  * @extends ServiceEntityRepository<TaskList>
  */
 class TaskListRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(
+        ManagerRegistry $registry,
+        private readonly PaginatorInterface $paginator,
+    )
     {
         parent::__construct($registry, TaskList::class);
     }
 
-    public function findTaskListsWithTasksByUser(User $user): array
+    public function findTaskListsByUserQuery(User $user, ?array $fields = null): Query
     {
-        return $this->createQueryBuilder('tl')
+        $qb = $this->createQueryBuilder('tl')
             ->leftJoin('tl.tasks', 't')
             ->addSelect('t')
             ->where('tl.user = :user')
-            ->setParameter('user', $user)
-            ->orderBy('tl.id', 'ASC')
-            ->addOrderBy('t.id', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->setParameter('user', $user);
+        if ($fields) {
+            $qb->select('tl.' . implode(', tl.', $fields));
+        }
+
+        return $qb->orderBy('tl.id', 'ASC')->getQuery();
+    }
+
+    public function findPaginatedTaskListsByUser(User $user, int $page = 1, int $pageSize = 10): PaginationInterface
+    {
+        return $this->paginator->paginate(
+            $this->findTaskListsByUserQuery($user),
+            $page,
+            $pageSize
+        );
     }
 
     //    /**

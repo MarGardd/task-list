@@ -2,7 +2,6 @@
 
 namespace App\Dto;
 
-use App\Entity\Task;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class TaskDto
@@ -15,14 +14,4 @@ class TaskDto
     public int $task_list_id;
 
     public ?int $id;
-
-    public function __construct(?Task $task = null)
-    {
-        if($task) {
-            $this->id = $task->getId();
-            $this->title = $task->getTitle();
-            $this->description = $task->getDescription() ?? '';
-            $this->task_list_id = $task->getTaskListId();
-        }
-    }
 }

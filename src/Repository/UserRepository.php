@@ -33,7 +33,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
-    public function findAllTasksWithTaskListsByUser(User $user): ?User
+    public function findAllUserTasks(User $user): ?User
     {
         return $this->createQueryBuilder('u')
             ->leftJoin('u.taskLists', 'tl')
@@ -42,7 +42,6 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             ->where('u.id = :userId')
             ->setParameter('userId', $user->getId())
             ->orderBy('tl.id', 'ASC')
-            ->addOrderBy('t.id', 'ASC')
             ->getQuery()
             ->getOneOrNullResult();
     }

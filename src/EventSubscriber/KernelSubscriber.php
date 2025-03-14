@@ -24,23 +24,23 @@ class KernelSubscriber implements EventSubscriberInterface
     public function onException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
-        $errors = [];
         if($exception instanceof ValidationFailedException || $exception->getPrevious() instanceof ValidationFailedException) {
             $validationFailedException = ($exception instanceof ValidationFailedException)
                 ? $exception
                 : $exception->getPrevious()
             ;
+            $errors = [];
             foreach($validationFailedException->getViolations() as $violation) {
                 $errors[] = [
                     'error' => $violation->getMessage()
                 ];
             }
-            $event->setResponse(new JsonResponse($errors, Response::HTTP_BAD_REQUEST));
+            $event->setResponse(new JsonResponse($errors, $exception->getStatusCode()));
         } else if ($exception instanceof NotFoundHttpException || $exception instanceof AccessDeniedHttpException) {
             $errors = [
                 'error' => $exception->getMessage()
             ];
-            $event->setResponse(new JsonResponse($errors, Response::HTTP_BAD_REQUEST));
+            $event->setResponse(new JsonResponse($errors, $exception->getStatusCode()));
         }
     }
 }

@@ -27,6 +27,8 @@ class Task
     #[ORM\JoinColumn(name: "task_list_id", referencedColumnName: "id")]
     private TaskList $taskList;
 
+    public const NOT_FOUND_EXCEPTION_MESSAGE = 'Task not found';
+
     public function getId(): ?int
     {
         return $this->id;

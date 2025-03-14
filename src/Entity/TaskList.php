@@ -23,7 +23,7 @@ class TaskList
     #[Assert\Type('string', message: "Field 'title' must be of type string")]
     private ?string $title = null;
 
-    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: "taskList", cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: "taskList", cascade: ['remove'])]
     private Collection $tasks;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "taskLists")]
@@ -32,6 +32,8 @@ class TaskList
 
     #[ORM\Column]
     private ?int $user_id = null;
+
+    public const NOT_FOUND_EXCEPTION_MESSAGE = 'Task list not found';
 
     public function __construct()
     {

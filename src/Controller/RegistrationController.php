@@ -21,26 +21,23 @@ class RegistrationController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface      $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly SerializerInterface         $serializer,
         private readonly ValidatorInterface          $validator
     ) {}
 
-    #[Route('/api/register', name: 'app_register', methods: ['POST'])]
+    #[Route('/api/register', name: 'app_register', methods: ['POST'], format: 'json')]
     public function register(Request $request): Response
     {
-        $registrationDto = $this->serializer->deserialize(
-            json_encode($request->getPayload()->all()),
-            RegistrationDto::class,
-            'json'
-        );
-        if ($validationResult = $this->validateRegistrationDto($registrationDto)) {
-            return $validationResult;
-        }
         $user = new User();
-        $user->setEmail($registrationDto->email);
+        $payload = $request->getPayload();
+        $user->setEmail($payload->get('email', ''));
         $user->setPassword(
-            $this->passwordHasher->hashPassword($user, $registrationDto->password)
+            $payload->get('password')
+                ? $this->passwordHasher->hashPassword($user, $payload->get('password'))
+                : ''
         );
+        if($response = $this->validateRegistration($user)){
+            return $response;
+        }
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
@@ -50,12 +47,13 @@ class RegistrationController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
-    private function validateRegistrationDto(RegistrationDto $registrationDto): ?JsonResponse
+    private function validateRegistration(User $user): ?JsonResponse
     {
-        $errors = $this->validator->validate($registrationDto);
+
+        $errors = $this->validator->validate($user);
         if (count($errors) > 0) {
             $errorMessages = array_map(fn($error) => $error->getMessage(), iterator_to_array($errors));
-            return $this->json(['errors' => $errorMessages], Response::HTTP_BAD_REQUEST);
+            return $this->json(['errors' => $errorMessages], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         return null;
