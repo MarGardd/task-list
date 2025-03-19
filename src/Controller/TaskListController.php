@@ -8,7 +8,7 @@ use App\Entity\TaskList;
 use App\Entity\User;
 use App\Repository\TaskListRepository;
 use App\Resolver\EntityValueResolver;
-use App\Service\PaginationService;
+use App\Response\ApiResponse;
 use App\Service\TaskListService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,30 +18,35 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route(path: "/api", name: "api_")]
 class TaskListController extends AbstractController
 {
     public function __construct(
         private readonly TaskListService $taskListService,
-        private readonly SerializerInterface $serializer,
-        private readonly PaginationService $paginationService,
         private readonly TaskListRepository $taskListRepository,
+        private readonly ApiResponse $apiResponse
     ) {}
 
     #[Route(path: "/task-lists", name: 'get_task_lists', methods: ["GET"])]
     public function index(#[CurrentUser] ?User $currentUser, Request $request): JsonResponse
     {
+
         $pagination = $this->taskListRepository->findPaginatedTaskListsByUser(
             $currentUser,
             $request->query->getInt('page', 1),
             $request->query->getInt('limit', 5)
         );
 
-        return $this->json(
-            $this->paginationService->getPaginatonResult($pagination)
-        );
+        return $this->apiResponse->create($pagination, groups: ['task_list', 'tasks']);
+    }
+
+    #[Route(path: "/task-lists/all", name: 'get_all_task_lists', methods: ["GET"])]
+    public function getAllTaskLists(#[CurrentUser] ?User $currentUser): JsonResponse
+    {
+        $taskLists = $this->taskListService->getAllTaskListsByUser($currentUser);
+
+        return $this->apiResponse->create($taskLists, groups: ['task_list', 'tasks']);
     }
 
     #[Route(path: "/task-lists/{id}", name: 'get_task_list', methods: ["GET"])]
@@ -51,7 +56,7 @@ class TaskListController extends AbstractController
         TaskList $taskList
     ): JsonResponse
     {
-        return $this->json($this->getDeserializedTaskList($taskList));
+        return $this->apiResponse->create($taskList, groups: ['task_list', 'tasks']);
     }
 
     #[Route(path: "/task-lists", name: 'create_task_list', methods: ["POST"])]
@@ -64,10 +69,12 @@ class TaskListController extends AbstractController
     {
         $taskList = $this->taskListService->createTaskList($taskList, $user);
 
-        return $this->json([
-            'message' => 'Task List created successfully',
-            'data' => $this->getDeserializedTaskList($taskList)
-        ], Response::HTTP_CREATED);
+        return $this->apiResponse->create(
+            $taskList,
+            'Task List created successfully',
+            status: Response::HTTP_CREATED,
+            groups: ['task_list']
+        );
     }
 
     #[Route(path: "/task-lists/{id}", name: 'update_task_list', methods: ["PUT"], format: 'json')]
@@ -83,10 +90,11 @@ class TaskListController extends AbstractController
     {
         $this->taskListService->updateTaskList($taskList, $taskListDto);
 
-        return $this->json([
-            'message' => 'Task List updated successfully',
-            'data' => $this->getDeserializedTaskList($taskList)
-        ]);
+        return $this->apiResponse->create(
+            $taskList,
+            'Task List updated successfully',
+            groups: ['task_list']
+        );
     }
 
     #[Route(path: "/task-lists/{id}", name: 'delete_task_list', methods: ["DELETE"])]
@@ -98,10 +106,5 @@ class TaskListController extends AbstractController
         $this->taskListService->deleteTaskList($taskList);
 
         return $this->json(['message' => 'Task List deleted successfully']);
-    }
-
-    private function getDeserializedTaskList(TaskList $taskList)
-    {
-        return json_decode($this->serializer->serialize($taskList, 'json'));
     }
 }

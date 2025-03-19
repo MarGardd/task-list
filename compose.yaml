@@ -4,6 +4,7 @@ services:
       context: .
     depends_on:
       - db
+      - redis
     volumes:
       - .:/var/www/html
   db:
@@ -32,5 +33,17 @@ services:
       - task-test
     volumes:
       - ./public:/var/www/html/public
+  redis:
+    build:
+      context: ./redis
+    container_name: redis
+    ports:
+      - 6379:6379
+    volumes:
+    - redis_data:/var/lib/redis/data
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_USERNAME: ${REDIS_USERNAME}
 volumes:
   dbdata:
+  redis_data:

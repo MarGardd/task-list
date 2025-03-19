@@ -22,6 +22,7 @@ class TaskService
         $task->setTaskList($taskList);
         $this->entityManager->persist($task);
         $this->entityManager->flush();
+        $task->setTaskListId($taskList->getId());
 
         return $task;
     }

@@ -31,6 +31,9 @@ services:
         tags: [ security.voter ]
     App\Security\TaskListVoter:
         tags: [ security.voter ]
+    App\Response\ApiResponse:
+        arguments:
+            $serializer: '@serializer'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

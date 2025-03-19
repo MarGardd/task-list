@@ -6,6 +6,7 @@ use App\Repository\TaskListRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Attribute\Ignore;
 
@@ -16,21 +17,26 @@ class TaskList
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['task_list'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank(message: "Field 'title' is required")]
     #[Assert\Type('string', message: "Field 'title' must be of type string")]
+    #[Groups(['task_list'])]
     private ?string $title = null;
 
     #[ORM\OneToMany(targetEntity: Task::class, mappedBy: "taskList", cascade: ['remove'])]
+    #[Groups(['tasks'])]
     private Collection $tasks;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "taskLists")]
     #[ORM\JoinColumn(name: "user_id", referencedColumnName: "id", nullable: false)]
+    #[Ignore]
     private User $user;
 
     #[ORM\Column]
+    #[Groups(['task_list'])]
     private ?int $user_id = null;
 
     public const NOT_FOUND_EXCEPTION_MESSAGE = 'Task list not found';
@@ -57,7 +63,6 @@ class TaskList
         return $this;
     }
 
-    #[Ignore]
     public function getTasks(): Collection
     {
         return $this->tasks;

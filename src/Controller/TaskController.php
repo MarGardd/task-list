@@ -9,7 +9,7 @@ use App\Entity\TaskList;
 use App\Entity\User;
 use App\Repository\TaskRepository;
 use App\Resolver\EntityValueResolver;
-use App\Service\PaginationService;
+use App\Response\ApiResponse;
 use App\Service\TaskService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,9 +26,8 @@ class TaskController extends AbstractController
 {
     public function __construct(
         private readonly TaskService $taskService,
-        private readonly SerializerInterface $serializer,
         private readonly TaskRepository $taskRepository,
-        private readonly PaginationService $paginationService
+        private readonly ApiResponse $apiResponse
     ) {}
 
     #[Route(path: "/tasks", name: 'get_tasks', methods: ["GET"])]
@@ -40,9 +39,7 @@ class TaskController extends AbstractController
             $request->query->getInt('limit', 5)
         );
 
-        return $this->json(
-            $this->paginationService->getPaginatonResult($pagination)
-        );
+        return $this->apiResponse->create($pagination);
     }
 
     #[Route(path: "/tasks/{id}", name: 'get_task', methods: ["GET"], format: 'json')]
@@ -52,7 +49,7 @@ class TaskController extends AbstractController
         Task $task
     ): JsonResponse
     {
-        return $this->json($this->getDeserializedTask($task));
+        return $this->apiResponse->create($task);
     }
 
     #[Route(path: "/task-lists/{id}/tasks", name: 'create_task', methods: ["POST"])]
@@ -69,10 +66,7 @@ class TaskController extends AbstractController
     {
         $task = $this->taskService->createTask($task, $taskList);
 
-        return $this->json([
-            'message' => 'Task created successfully',
-            'data' => $this->getDeserializedTask($task)
-        ], Response::HTTP_CREATED);
+        return $this->apiResponse->create($task, 'Task create successfully', Response::HTTP_CREATED);
     }
 
     #[Route(path: "/task-lists/{task_list_id}/tasks/{id}", name: 'update_task', methods: ["PUT"], format: 'json')]
@@ -94,10 +88,7 @@ class TaskController extends AbstractController
     {
         $this->taskService->updateTask($task, $taskDto);
 
-        return $this->json([
-            'message' => 'Task updated successfully',
-            'data' => $this->getDeserializedTask($task)
-        ]);
+        return $this->apiResponse->create($task, 'Task updated successfully');
     }
 
     #[Route(path: "/task-lists/{task_list_id}/tasks/{id}", name: 'delete_task', methods: ["DELETE"])]
@@ -121,12 +112,5 @@ class TaskController extends AbstractController
         $this->taskService->deleteTask($task);
 
         return $this->json(['message' => 'Task deleted successfully']);
-    }
-
-    private function getDeserializedTask(Task $task)
-    {
-        return json_decode($this->serializer->serialize($task, 'json', [
-            'attributes' => ['id', 'title', 'description', 'taskListId']
-        ]));
     }
 }

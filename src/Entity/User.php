@@ -42,6 +42,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: TaskList::class, mappedBy: "user", cascade: ['remove'])]
     private Collection $taskLists;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $isVerified = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -111,6 +114,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getTaskLists(): Collection
     {
         return $this->taskLists;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->isVerified;
+    }
+
+    public function setIsVerified(bool $isVerified): self
+    {
+        $this->isVerified = $isVerified;
+
+        return $this;
     }
 
     /**

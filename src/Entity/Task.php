@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\TaskRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\Ignore;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 class Task
@@ -12,12 +14,15 @@ class Task
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['tasks'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['tasks'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['tasks'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::BIGINT)]
@@ -58,6 +63,7 @@ class Task
         return $this;
     }
 
+    #[Ignore]
     public function getTaskListId(): ?string
     {
         return $this->task_list_id;
@@ -70,6 +76,7 @@ class Task
         return $this;
     }
 
+    #[Ignore]
     public function getTaskList(): ?TaskList
     {
         return $this->taskList;
@@ -82,6 +89,7 @@ class Task
         return $this;
     }
 
+    #[Ignore]
     public function getOwner(): User
     {
         return $this->taskList->getUser();

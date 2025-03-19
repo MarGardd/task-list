@@ -46,6 +46,11 @@ class TaskListRepository extends ServiceEntityRepository
         );
     }
 
+    public function findAllTaskListsByUser(User $user)
+    {
+        return $this->findTaskListsByUserQuery($user)->getResult();
+    }
+
     //    /**
     //     * @return TaskList[] Returns an array of TaskList objects
     //     */
