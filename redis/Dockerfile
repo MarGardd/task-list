@@ -6,5 +6,4 @@ RUN mkdir -p /etc/redis/
 
 COPY default.conf /tmp/default.conf
 
-ENTRYPOINT ["sh", "-c", "envsubst < /tmp/default.conf > /etc/redis/redis.conf"]
-CMD ["redis-server", "/etc/redis/redis.conf"]
+CMD ["sh", "-c", "envsubst < /tmp/default.conf > /etc/redis/redis.conf && redis-server /etc/redis/redis.conf"]

@@ -31,7 +31,6 @@ class TaskList
     private Collection $tasks;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: "taskLists")]
-    #[ORM\JoinColumn(name: "user_id", referencedColumnName: "id", nullable: false)]
     #[Ignore]
     private User $user;
 

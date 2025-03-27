@@ -51,6 +51,16 @@ class TaskListRepository extends ServiceEntityRepository
         return $this->findTaskListsByUserQuery($user)->getResult();
     }
 
+    public function save(TaskList $taskList, bool $flush = true): void
+    {
+        $entityManager = $this->getEntityManager();
+        $entityManager->persist($taskList);
+
+        if ($flush) {
+            $entityManager->flush();
+        }
+    }
+
     //    /**
     //     * @return TaskList[] Returns an array of TaskList objects
     //     */

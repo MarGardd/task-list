@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Task;
+use App\Entity\TaskList;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -46,6 +47,16 @@ class TaskRepository extends ServiceEntityRepository
             $page,
             $pageSize
         );
+    }
+
+    public function save(Task $task, bool $flush = true): void
+    {
+        $entityManager = $this->getEntityManager();
+        $entityManager->persist($task);
+
+        if ($flush) {
+            $entityManager->flush();
+        }
     }
 
 
